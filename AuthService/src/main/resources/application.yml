@@ -1,10 +1,7 @@
 spring:
   application:
     name: auth-service
-
+    
   config:
-    import: configserver:http://localhost:8888
-
-  cloud:
-    config:
-      fail-fast: true
+    import: optional:file:.env[.properties], optional:configserver:http://config-server:8888
+    # has been changed to eureka server for docker.

@@ -2,9 +2,16 @@ package com.skillsync.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
+/*
+ * ================================================================
+ * AUTHOR: Ravindranath Potturu
+ * CLASS: User
+ * DESCRIPTION:
+ * JPA Entity representing a core user account in the SkillSync ecosystem.
+ * ================================================================
+ */
 @Entity
 @Table(name = "users")
 @Data
@@ -17,12 +24,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
-    
-    @Column(nullable = false, unique = true, length = 20)
-    private String phoneNumber;
-    
+
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
@@ -33,7 +37,9 @@ public class User {
     private Role role;
 
     private Boolean enabled;
-    private LocalDateTime createdAt;
-    private LocalDateTime lastLoginAt;
 
+    @Enumerated(EnumType.STRING)
+    private AccountStatus accountStatus;
+
+    private LocalDateTime createdAt;
 }

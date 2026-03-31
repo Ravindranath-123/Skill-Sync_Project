@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: skill-service
+
+  config:
+    import: configserver:http://config-server:8888, optional:file:.env[.properties]
+
+  cloud:
+    config:
+      fail-fast: true

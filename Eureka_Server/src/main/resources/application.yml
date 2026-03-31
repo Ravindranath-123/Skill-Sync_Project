@@ -1,11 +1,16 @@
-server:
-  port: 8761
-
+# spring:
+#   application:
+#     name: eureka-server
+#   config:
+#     import: optional:configserver:http://config-server:8888
+#     # has been changed to config server for docker.
 spring:
   application:
-    name: EUREKA-SERVER
-
-eureka:
-  client:
-    register-with-eureka: false
-    fetch-registry: false
+    name: eureka-server
+  # This is the line the error message is begging for:
+  config:
+    import: "optional:configserver:http://config-server:8888"
+  cloud:
+    config:
+      discovery:
+        enabled: false # Eureka shouldn't try to find config server via itself

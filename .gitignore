@@ -5,4 +5,8 @@ target/
 .settings/
 .classpath
 .project
+<<<<<<< HEAD
 *.log
+=======
+*.log
+>>>>>>> 9a26b1b (Initial commit - Skill Sync project)

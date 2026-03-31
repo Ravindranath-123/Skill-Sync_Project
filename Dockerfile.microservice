@@ -1,0 +1,19 @@
+# Multi-stage build for Spring Boot Maven projects
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
+
+# Temporarily copy all the source files. 
+# We copy pom.xml first and the src directory to leverage Docker caching.
+COPY pom.xml .
+# Download dependencies if possible (will speed up subsequent builds)
+RUN mvn dependency:go-offline -B || echo "Continuing without pre-downloading dependencies"
+COPY src ./src
+# Build the JAR
+RUN mvn clean package -DskipTests
+
+# Run stage
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+# Support for stabilization flags via environment variables
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]

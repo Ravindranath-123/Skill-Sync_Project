@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: mentor-service
+
+  config:
+    import: configserver:http://config-server:8888, optional:file:.env[.properties]
+    # has been changed to eureka server for docker.
+
+  cloud:
+    config:
+      fail-fast: true

@@ -1,0 +1,307 @@
+# version: '3.8'
+
+# services:
+#   eureka-server:
+#     build: ./Eureka_Server
+#     image: myapp/eureka-server:v1
+#     ports:
+#       - "8761:8761"
+#     networks:
+#       - microservice-net
+
+#   config-server:
+#     build: ./Config_Server
+#     image: myapp/config-server:v1
+#     ports:
+#       - "8888:8888"
+#     depends_on:
+#       - eureka-server
+#     environment:
+#       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+#     networks:
+#       - microservice-net
+
+#   api-gateway:
+#     build: ./API_Gateway
+#     image: myapp/api-gateway:v1
+#     ports:
+#       - "8092:8092"
+#     depends_on:
+#       - eureka-server
+#       - config-server
+#     networks:
+#       - microservice-net
+
+#   auth-service:
+#     build: ./AuthService
+#     image: myapp/auth-service:v1
+#     depends_on:
+#       - eureka-server
+#     networks:
+#       - microservice-net
+
+#   user-service:
+#     build: ./UserService
+#     image: myapp/user-service:v1
+#     depends_on:
+#       - eureka-server
+#     networks:
+#       - microservice-net
+
+#   mentor-service:
+#     build: ./MentorService
+#     image: myapp/mentor-service:v1
+#     depends_on:
+#       - eureka-server
+#     networks:
+#       - microservice-net
+
+#   notification-service:
+#     build: ./NotificationService
+#     image: myapp/notification-service:v1
+#     depends_on:
+#       - eureka-server
+#     networks:
+#       - microservice-net
+
+#   review-service:
+#     build: ./ReviewService
+#     image: myapp/review-service:v1
+#     depends_on:
+#       - eureka-server
+#     networks:
+#       - microservice-net
+
+#   session-service:
+#     build: ./SessionService
+#     image: myapp/session-service:v1
+#     depends_on:
+#       - eureka-server
+#     networks:
+#       - microservice-net
+
+#   skill-service:
+#     build: ./SkillService
+#     image: myapp/skill-service:v1
+#     depends_on:
+#       - eureka-server
+#     networks:
+#       - microservice-net
+
+# networks:
+#   microservice-net:
+#     driver: bridge
+
+x-common-env: &common-env
+  JAVA_TOOL_OPTIONS: "-Xms128m -Xmx200m"
+  SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+  DB_USERNAME: "root"
+  DB_PASSWORD: "root"
+  RABBITMQ_USERNAME: "guest"
+  RABBITMQ_PASSWORD: "guest"
+
+x-common-config: &common-config
+  networks:
+    - microservice-net
+  restart: on-failure
+  deploy:
+    resources:
+      limits:
+        memory: 512M
+
+services:
+  # --- INFRASTRUCTURE ---
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    networks:
+      - microservice-net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - microservice-net
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - microservice-net
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+
+  # --- BACKBONE SERVICES ---
+  eureka-server:
+    build: ./Eureka_Server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx128m
+      - SERVER_PORT=8761
+      - EUREKA_CLIENT_REGISTERWITHEUREKA=false
+      - EUREKA_CLIENT_FETCHREGISTRY=false
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - microservice-net
+
+  config-server:
+    build: ./Config_Server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - JAVA_TOOL_OPTIONS=-Xms64m -Xmx128m
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - microservice-net
+
+  # --- API GATEWAY ---
+  api-gateway:
+    build: ./API_Gateway
+    container_name: api-gateway
+    ports:
+      - "8092:8092"
+    depends_on:
+      config-server:
+        condition: service_healthy
+    <<: *common-config
+    environment:
+      <<: *common-env
+
+  # --- MICROSERVICES ---
+  auth-service:
+    build: ./AuthService
+    container_name: auth-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+    <<: *common-config
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/auth_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+
+  user-service:
+    build: ./UserService
+    container_name: user-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+    <<: *common-config
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/user_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+
+  mentor-service:
+    build: ./MentorService
+    container_name: mentor-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+    <<: *common-config
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/mentor_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+
+  notification-service:
+    build: ./NotificationService
+    container_name: notification-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    <<: *common-config
+    environment:
+      <<: *common-env
+
+  review-service:
+    build: ./ReviewService
+    container_name: review-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+    <<: *common-config
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/review_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+
+  session-service:
+    build: ./SessionService
+    container_name: session-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    <<: *common-config
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/session_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+
+  skill-service:
+    build: ./SkillService
+    container_name: skill-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+    <<: *common-config
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/skill_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+
+networks:
+  microservice-net:
+    driver: bridge

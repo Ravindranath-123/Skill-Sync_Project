@@ -3,6 +3,14 @@ package com.skillsync.auth.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+/*
+ * ================================================================
+ * AUTHOR: Ravindranath Potturu
+ * CLASS: LoginRequestDto
+ * DESCRIPTION:
+ * Data Transfer Object containing credentials for user login.
+ * ================================================================
+ */
 @Getter
 @Setter
 @NoArgsConstructor

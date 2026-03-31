@@ -18,6 +18,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 
+/*
+ * ================================================================
+ * AUTHOR: Ravindranath Potturu
+ * CLASS: JwtAuthenticationFilter
+ * DESCRIPTION:
+ * Main security filter that intercepts requests to validate JWTs 
+ * and set the security context for authenticated users.
+ * ================================================================
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -27,11 +36,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    /* ================================================================
+     * METHOD: doFilterInternal
+     * DESCRIPTION: 
+     * Core filter logic that bypasses public routes and strictly 
+     * validates bearer tokens for protected resources.
+     * ================================================================ */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+
+        // ⭐ VERY IMPORTANT → skip JWT validation for public + internal APIs
+        if (path.contains("/auth/login") ||
+            path.contains("/auth/register") ||
+            path.startsWith("/auth/internal")) {
+
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
 

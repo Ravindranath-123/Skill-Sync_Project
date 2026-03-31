@@ -11,9 +11,22 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/*
+ * ================================================================
+ * AUTHOR: Ravindranath Potturu
+ * CLASS: GlobalExceptionHandler
+ * DESCRIPTION:
+ * Main exception handler that captures and standardizes error responses 
+ * across the Authentication Service.
+ * ================================================================
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /* ================================================================
+     * METHOD: handleRuntimeException
+     * DESCRIPTION: Captures unhandled runtime and business-specific exceptions.
+     * ================================================================ */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(
             RuntimeException ex,
@@ -30,6 +43,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    /* ================================================================
+     * METHOD: handleValidationException
+     * DESCRIPTION: Captures and formats validation errors from JSR-303 annotations.
+     * ================================================================ */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,

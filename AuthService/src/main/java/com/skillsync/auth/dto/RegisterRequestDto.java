@@ -3,6 +3,14 @@ package com.skillsync.auth.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+/*
+ * ================================================================
+ * AUTHOR: Ravindranath Potturu
+ * CLASS: RegisterRequestDto
+ * DESCRIPTION:
+ * Data Transfer Object containing registration details for a new user.
+ * ================================================================
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,5 +34,11 @@ public class RegisterRequestDto {
 
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
-    private String phoneNumber; 
+
+    @NotBlank(message = "Role is required")
+    @Pattern(
+            regexp = "ROLE_LEARNER|ROLE_MENTOR",
+            message = "Role must be ROLE_LEARNER or ROLE_MENTOR"
+    )
+    private String role;
 }
