@@ -8,7 +8,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/Manideep12222385/SkillSync-config-server
+          uri: https://github.com/Ravindranath-123/SkillSync_config-server
           clone-on-start: true
           default-label: main
           search-paths: configs

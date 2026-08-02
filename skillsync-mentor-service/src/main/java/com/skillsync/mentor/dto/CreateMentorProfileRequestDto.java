@@ -17,4 +17,6 @@ public class CreateMentorProfileRequestDto {
 
     @NotNull
     private Boolean available;
+    
+    private String profileImage;
 }

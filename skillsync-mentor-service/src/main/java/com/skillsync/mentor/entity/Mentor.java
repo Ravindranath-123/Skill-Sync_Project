@@ -41,6 +41,9 @@ public class Mentor {
     @Column(nullable = false)
     private MentorStatus status;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String profileImage;
+
     @OneToMany
     @JoinColumn(name = "mentorId",
             referencedColumnName = "mentorId",

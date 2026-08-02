@@ -9,4 +9,5 @@ public class UpdateMentorProfileRequestDto {
     private Integer experienceYears;
     private Double hourlyRate;
     private Boolean available;
+    private String profileImage;
 }

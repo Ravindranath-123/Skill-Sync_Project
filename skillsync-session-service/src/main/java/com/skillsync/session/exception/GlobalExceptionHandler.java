@@ -6,6 +6,11 @@ import org.springframework.http.HttpStatus;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * @author manideep
+ * 
+ * Provides business logic and REST endpoints for the service.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

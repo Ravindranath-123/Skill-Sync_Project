@@ -29,7 +29,7 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
 		http.csrf(csrf -> csrf.disable())
-		 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+		 .cors(cors -> cors.disable())
 				.authorizeHttpRequests(auth -> auth
 
 						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**").permitAll()
@@ -53,25 +53,5 @@ public class SecurityConfig {
 		return http.build();
 	}
 	
-	@Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow the specific origin of your Gateway/Swagger UI
-        configuration.setAllowedOrigins(List.of("http://localhost:8085"));
-
-        // Allow standard methods
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // Allow all headers (Content-Type, Authorization, etc.)
-        configuration.setAllowedHeaders(List.of("*"));
-
-        // Allow credentials for Auth headers
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Applying this configuration to all endpoints
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-	}
 }
